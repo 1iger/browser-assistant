@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="top">
+    <nav class="nav">
+      <button class="nav-btn active" data-pane="tabs">Вкладки</button>
+      <button class="nav-btn" data-pane="links">Ссылки</button>
+      <button class="nav-btn" data-pane="points">Баллы</button>
+      <button class="nav-btn" data-pane="anon">Аноним</button>
+    </nav>
+    <button id="openOptions" class="icon-btn" title="Настройки">⚙</button>
+  </header>
+
+  <main>
+    <!-- ВКЛАДКИ -->
+    <section id="pane-tabs" class="pane">
+      <div class="stats">
+        <span id="tabStat">Загрузка…</span>
+        <button id="memPerm" class="ghost-btn accent" hidden>Разрешить доступ</button>
+        <button id="refreshTabs" class="ghost-btn" title="Обновить">⟳</button>
+      </div>
+      <div id="tabList" class="list"></div>
+    </section>
+
+    <!-- ССЫЛКИ -->
+    <section id="pane-links" class="pane" hidden>
+      <div class="row">
+        <button id="collectBtn" class="primary-btn">Собрать ссылки</button>
+        <label class="check"><input type="checkbox" id="allLinks"> все ссылки</label>
+      </div>
+      <div class="row muted" id="linkInfoRow" hidden>
+        <span id="linkStat"></span>
+        <span class="spacer"></span>
+        <button id="copyBtn" class="ghost-btn">Копировать</button>
+      </div>
+      <div id="linkList" class="list"></div>
+      <div id="linkEmpty" class="empty" hidden></div>
+    </section>
+
+    <!-- БАЛЛЫ -->
+    <section id="pane-points" class="pane" hidden>
+      <div class="status-card">
+        <div class="status-row"><span class="k">Токен:</span><span id="pkToken" class="v">—</span></div>
+        <div class="status-row"><span class="k">Каналы:</span><span id="pkChannels" class="v">—</span></div>
+        <div class="status-row"><span class="k">Баланс:</span><span id="pkBalance" class="v">—</span></div>
+      </div>
+
+      <div class="pt-stats">
+        <div class="stat">
+          <div class="stat-value" id="pkClicks">0</div>
+          <div class="stat-label">собрано бонусов</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="pkLast">—</div>
+          <div class="stat-label">последний</div>
+        </div>
+      </div>
+
+      <div class="mini-wrap">
+        <div class="mini-title">Баллы за 7 дней</div>
+        <canvas id="pkChart" width="348" height="72"></canvas>
+      </div>
+
+      <div class="pts-card">
+        <label class="row check"><input type="checkbox" id="pkEnabled"> Автосбор включён</label>
+        <label class="row muted">Интервал опроса, мс
+          <input type="number" id="pkInterval" min="3000" max="120000" step="1000">
+        </label>
+        <label class="row check"><input type="checkbox" id="pkNotify"> Уведомлять о сборе баллов</label>
+        <label class="row check"><input type="checkbox" id="pkAutoBk"> Авто-бэкап статистики в файл</label>
+      </div>
+
+      <div class="row">
+        <button id="pkStatsBtn" class="ghost-btn">Статистика с графиками</button>
+        <span class="spacer"></span>
+        <button id="pkSave" class="ghost-btn">Сохранить</button>
+      </div>
+
+      <div class="hint">Баллы на live.vkvideo.ru собираются через API каналов, на которые вы
+        подписаны, на Twitch кликаются бонусные кнопки. Откройте стрим — и сбор начнётся сам.
+        Токен VK перехватывается из запросов и хранится только в памяти.</div>
+      <div id="pkLog" class="log"></div>
+    </section>
+
+    <!-- АНОНИМ -->
+    <section id="pane-anon" class="pane" hidden>
+      <div class="pane-h">Постоянная анонимизация сайта</div>
+      <div class="site-card">
+        <div class="site-host" id="siteHost">—</div>
+        <label class="switch">
+          <input type="checkbox" id="anonToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="hint" id="siteHint"></div>
+      <ul class="feature-list" id="anonFeatures"></ul>
+
+      <div class="pane-h">Временный профиль для этой вкладки</div>
+      <div class="site-card">
+        <div class="site-host">
+          <span id="tabAnonHost">—</span>
+          <span class="tag" id="tabAnonProfile"></span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="anonTabToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="hint" id="tabAnonHint"></div>
+
+      <div class="row">
+        <button id="anonOptions" class="ghost-btn">Настройки анонимайзера</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

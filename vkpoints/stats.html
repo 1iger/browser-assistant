@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Статистика — VK Video Live / Twitch</title>
+  <link rel="stylesheet" href="stats.css">
+</head>
+<body>
+  <header>
+    <h1>Статистика сбора баллов</h1>
+    <div class="header-actions">
+      <button id="exportCsv" type="button">Экспорт CSV</button>
+      <button id="exportJson" type="button">Экспорт JSON</button>
+      <button id="backup" type="button">Скачать копию</button>
+      <button id="restore" type="button">Восстановить из файла</button>
+      <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+      <button id="clear" type="button" class="danger">Очистить</button>
+      <button id="refresh" type="button">Обновить</button>
+    </div>
+    <div id="msg" style="position:fixed;left:50%;transform:translateX(-50%);bottom:16px;background:#1c2331;color:#9fd0ff;padding:8px 14px;border-radius:6px;border:1px solid #2a3040;display:none;z-index:99;font-size:13px"></div>
+  </header>
+
+  <section class="filters">
+    <label>Платформа
+      <select id="filterPlatform">
+        <option value="all">Все</option>
+        <option value="vk">VK</option>
+        <option value="twitch">Twitch</option>
+      </select>
+    </label>
+    <label>Период
+      <select id="filterPeriod">
+        <option value="all">Всё время</option>
+        <option value="7">7 дней</option>
+        <option value="30">30 дней</option>
+        <option value="60">60 дней</option>
+      </select>
+    </label>
+    <label>Канал
+      <input type="text" id="filterChannel" placeholder="начните вводить...">
+    </label>
+  </section>
+
+  <section class="totals">
+    <div class="card">
+      <div class="big" id="totalCount">0</div>
+      <div class="lbl">сборов (по фильтру)</div>
+    </div>
+    <div class="card">
+      <div class="big" id="totalAmount">0</div>
+      <div class="lbl">баллов (по фильтру)</div>
+    </div>
+    <div class="card">
+      <div class="big" id="active">—</div>
+      <div class="lbl">уникальных каналов</div>
+    </div>
+  </section>
+
+  <section class="charts">
+    <div class="card chart-card">
+      <h2>Баллы по каналам</h2>
+      <canvas id="byChannel" width="600" height="240"></canvas>
+    </div>
+    <div class="card chart-card">
+      <h2>Сбор по времени (30 дней)</h2>
+      <canvas id="byTime" width="600" height="240"></canvas>
+    </div>
+  </section>
+
+  <section class="card history">
+    <h2>Последние сборы</h2>
+    <table id="history">
+      <thead>
+        <tr><th>Когда</th><th>Платформа</th><th>Канал</th><th>Сумма</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <script src="stats.js"></script>
+</body>
+</html>

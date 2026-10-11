@@ -1,0 +1,116 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background: #0f1216;
+  color: #e6e9ee;
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+header h1 { font-size: 18px; }
+
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+#refresh, #exportCsv, #exportJson, #clear {
+  padding: 7px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#refresh, #exportCsv, #exportJson {
+  background: #4f8cff;
+  color: #fff;
+}
+
+#refresh:hover, #exportCsv:hover, #exportJson:hover { background: #3f7aec; }
+
+#clear {
+  background: transparent;
+  color: #ff7a7a;
+  border: 1px solid #ff7a7a;
+}
+
+#clear:hover { background: #3d1a1f; }
+
+.filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.filters label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #c6cede;
+}
+
+.filters select,
+.filters input {
+  background: #1a1f29;
+  border: 1px solid #2a3040;
+  border-radius: 6px;
+  color: #e6e9ee;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.filters input { width: 180px; }
+
+.totals { display: flex; gap: 12px; margin-bottom: 16px; }
+
+.card {
+  background: #1a1f29;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.totals .card { flex: 1; text-align: center; }
+
+.big { font-size: 24px; font-weight: 700; color: #4f8cff; }
+.lbl { font-size: 11px; color: #8b94a3; margin-top: 4px; }
+
+.charts { display: flex; flex-direction: column; gap: 16px; }
+
+.chart-card h2 {
+  font-size: 14px;
+  margin-bottom: 10px;
+  color: #c6cede;
+}
+
+canvas { width: 100%; background: #141922; border-radius: 8px; }
+
+.history { margin-top: 16px; }
+.history h2 { font-size: 14px; margin-bottom: 10px; color: #c6cede; }
+
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { text-align: left; color: #8b94a3; padding: 6px 8px; border-bottom: 1px solid #2a3040; }
+td { padding: 6px 8px; border-bottom: 1px solid #222836; }
+tr:last-child td { border-bottom: none; }
+
+.platform-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.platform-tag.vk { background: #1f3a66; color: #7fb0ff; }
+.platform-tag.twitch { background: #3d1a56; color: #c084fc; }

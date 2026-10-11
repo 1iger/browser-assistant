@@ -1,0 +1,19 @@
+# OS / редакторы
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Резервные копии и артефакты сборки
+*.bak
+*.orig
+*.log
+*.zip
+dist/
+build/
+node_modules/
+
+# Локальные секреты
+.env
+.env.*

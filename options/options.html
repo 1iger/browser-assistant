@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Browser Assistant — настройки</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <h1>Browser Assistant</h1>
+    <div id="saveState" class="save-state">Сохранено</div>
+
+    <section class="card">
+      <h2>2. Экстрактор ссылок</h2>
+      <p class="muted">Форматы файлов, которые отбираются со страницы (через запятую или пробел, точка не нужна).</p>
+      <textarea id="extensions" rows="4" spellcheck="false"></textarea>
+      <label class="check">
+        <input type="checkbox" id="allLinks">
+        Собирать все ссылки без фильтра по форматам
+      </label>
+    </section>
+
+    <section class="card">
+      <h2>3. Анонимайзер: заголовки</h2>
+      <p class="muted">Правила применяются только к сайтам из списка ниже.</p>
+      <label class="check"><input type="checkbox" id="a-ua"> Подменять User-Agent (заголовок и navigator)</label>
+      <input type="text" id="uaValue" spellcheck="false" placeholder="User-Agent">
+      <label class="check"><input type="checkbox" id="a-lang"> Скрывать Accept-Language</label>
+      <label class="check"><input type="checkbox" id="a-ref"> Скрывать Referer</label>
+      <label class="check"><input type="checkbox" id="a-ch"> Удалять Client Hints и служебные заголовки (sec-ch-*, x-client-data, dpr, rtt…)</label>
+      <label class="check"><input type="checkbox" id="a-3p"> Третьи стороны: разрешить доступ ко всем сайтам</label>
+      <p class="muted">Без этого пункта подменяются только запросы к самому домену сайта — для скрытия утечек на сторонние ресурсы нужно разрешение «на все сайты».</p>
+
+      <h3>Сайты в анонимности</h3>
+      <div id="siteList" class="site-list"></div>
+      <p class="muted" id="siteListEmpty">Пока пусто — включите сайт во вкладке «Аноним» в попапе.</p>
+    </section>
+
+    <section class="card">
+      <h2>Анонимайзер: отпечатки браузера</h2>
+      <label class="check"><input type="checkbox" id="f-nav"> navigator: язык, платформа, vendor, hardwareConcurrency, deviceMemory, userAgentData</label>
+      <label class="check"><input type="checkbox" id="f-canvas"> Маскировать canvas-отпечаток</label>
+      <label class="check"><input type="checkbox" id="f-webgl"> Маскировать WebGL vendor/renderer</label>
+      <label class="check"><input type="checkbox" id="f-tz"> Маскировать часовой пояс</label>
+      <input type="text" id="tzValue" spellcheck="false" placeholder="Например: America/New_York">
+    </section>
+
+    <section class="card">
+      <h2>Анонимайзер: профиль вкладки</h2>
+      <p class="muted">Включается для отдельной вкладки в попапе (кнопка «Аноним.» — пункт «Эта вкладка»).
+        Подменяет заголовки, User-Agent, язык, часовой пояс и другие признаки на профиль страны.
+        Действует до закрытия вкладки.</p>
+      <p class="muted">Учтите: это обфускация отпечатка, а не VPN — IP-адрес не скрывается.</p>
+      <label class="select-row">Страна
+        <select id="anTab-profile"></select>
+      </label>
+      <label class="check"><input type="checkbox" id="anTab-ua"> Подменять User-Agent (в т.ч. userAgentData)</label>
+      <label class="check"><input type="checkbox" id="anTab-lang"> Язык и Accept-Language</label>
+      <label class="check"><input type="checkbox" id="anTab-tz"> Часовой пояс, дата, Intl</label>
+      <label class="check"><input type="checkbox" id="anTab-platform"> Платформа (navigator.platform, process, vendor)</label>
+      <label class="check"><input type="checkbox" id="anTab-hw"> Железо (ядра, память, тачпойнты)</label>
+      <label class="select-row">Экран
+        <select id="anTab-screen">
+          <option value="0">Не менять</option>
+          <option value="1">1920 × 1080</option>
+          <option value="2">2560 × 1440</option>
+          <option value="3">1440 × 900</option>
+        </select>
+      </label>
+      <label class="select-row">Геолокация
+        <select id="anTab-geo">
+          <option value="off">Не трогать</option>
+          <option value="spoof">Подменять на точку страны</option>
+          <option value="block">Запретить (отказ)</option>
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" id="anTab-webrtc"> Запретить WebRTC (перечисление IP)</label>
+      <h3>Заголовки запросов</h3>
+      <label class="check"><input type="checkbox" id="anTab-strip-lang"> Скрывать Accept-Language из запросов</label>
+      <label class="check"><input type="checkbox" id="anTab-strip-ch"> Удалять Client Hints и служебные заголовки (sec-ch-*, x-client-data, dpr, rtt…)</label>
+    </section>
+
+    <section class="card">
+      <h2>1. Вкладки</h2>
+      <p class="muted">Показывает название вкладки и расход памяти (данные процессов Chrome, оценка). Клик по названию закрывает вкладку.</p>
+      <label class="check">Интервал обновления памяти в попапе: 3 сек</label>
+    </section>
+  <section class="card">
+      <h2>Иконка расширения</h2>
+      <p class="muted">Что показывать на значке расширения (бейдже).</p>
+      <label class="select-row">На иконке
+        <select id="badgeMode">
+          <option value="mem">Память вкладок</option>
+          <option value="points">Собранные баллы</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="card">
+      <h2>4. Баллы (VK Video Live / Twitch)</h2>
+      <p class="muted">Автосбор наград канала на live.vkvideo.ru (через API) и бонусных кнопок
+        на Twitch (клик в DOM). Включение и настройки — во вкладке «Баллы» попапа.
+        Полная история сборов — на отдельной странице статистики.</p>
+      <button id="openStats" type="button">Статистика с графиками</button>
+    </section>
+  </main>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>

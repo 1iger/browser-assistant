@@ -1,0 +1,14 @@
+{
+  "name": "browser-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MV3-расширение: память вкладок, экстрактор ссылок, анонимайзер и автосбор баллов VK Video Live / Twitch",
+  "license": "MIT",
+  "author": "Nikolay",
+  "keywords": [
+    "chrome-extension",
+    "manifest-v3",
+    "declarativeNetRequest",
+    "anti-fingerprint"
+  ]
+}
