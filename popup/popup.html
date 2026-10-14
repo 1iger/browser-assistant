@@ -10,6 +10,7 @@
       <button class="nav-btn active" data-pane="tabs">Вкладки</button>
       <button class="nav-btn" data-pane="links">Ссылки</button>
       <button class="nav-btn" data-pane="points">Баллы</button>
+      <button class="nav-btn" data-pane="emotes">Смайлы</button>
       <button class="nav-btn" data-pane="anon">Аноним</button>
     </nav>
     <button id="openOptions" class="icon-btn" title="Настройки">⚙</button>
@@ -115,6 +116,35 @@
       <div class="row">
         <button id="anonOptions" class="ghost-btn">Настройки анонимайзера</button>
       </div>
+    </section>
+
+    <!-- СМАЙЛЫ -->
+    <section id="pane-emotes" class="pane" hidden>
+      <div class="row">
+        <button id="collectEmotes" class="primary-btn">Собрать смайлы</button>
+        <span class="spacer"></span>
+        <button id="downloadAllEmotes" class="ghost-btn">Скачать все</button>
+      </div>
+      <div class="row">
+        <label class="emote-format" title="Формат сохраняемых файлов">
+          <span>Формат:</span>
+          <select id="emoteFormat">
+            <option value="webp">WEBP — для VK Live</option>
+            <option value="gif">GIF — как на CDN</option>
+          </select>
+        </label>
+        <span class="spacer"></span>
+        <span id="emoteFormatHint" class="muted"></span>
+      </div>
+      <div class="row muted" id="emoteInfoRow" hidden>
+        <span id="emoteStat"></span>
+        <span class="spacer"></span>
+        <span id="emoteProgress"></span>
+      </div>
+      <div id="emoteList" class="emote-grid"></div>
+      <div id="emoteEmpty" class="empty" hidden>Откройте страницу Twitch и нажмите «Собрать смайлы».</div>
+      <div class="hint">Ищутся смайлы Twitch, BTTV, FFZ и 7TV. WEBP — квадратный 112×112–4096×4096, до 1 Мб
+        (под VK Live, анимация сохраняется). GIF — родной файл с CDN как есть. Имя файла — код смайлика.</div>
     </section>
   </main>
 

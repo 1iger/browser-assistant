@@ -46,12 +46,14 @@ body {
 
 .nav-btn {
   flex: 1;
-  padding: 6px 8px;
+  padding: 6px 4px;
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
   color: var(--muted);
   font: inherit;
+  font-size: 12px;
+  white-space: nowrap;
   font-weight: 600;
   cursor: pointer;
 }
@@ -279,6 +281,26 @@ main { padding: 8px; }
 
 .hint { color: var(--muted); font-size: 12px; }
 
+.emote-format {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.emote-format select {
+  font: inherit;
+  color: var(--fg);
+  background: var(--chip);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 3px 6px;
+  cursor: pointer;
+}
+
+#emoteFormatHint { font-size: 11px; }
+
 .feature-list {
   margin: 0;
   padding: 0;
@@ -401,3 +423,55 @@ main { padding: 8px; }
 
 .log .entry { display: flex; gap: 6px; }
 .log .time { flex: 0 0 auto; color: var(--muted); }
+
+/* ---------- вкладка «Смайлы» (Twitch / BTTV / FFZ / 7TV) ---------- */
+
+.emote-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  max-height: 430px;
+  overflow-y: auto;
+}
+
+.emote-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  min-width: 0;
+}
+.emote-card:hover { background: var(--chip); }
+.emote-card.done { opacity: .5; }
+.emote-card.busy { opacity: .7; }
+
+.emote-card img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+.emote-card .emote-name {
+  max-width: 100%;
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.emote-card .emote-prov {
+  max-width: 100%;
+  font-size: 9px;
+  color: var(--muted);
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

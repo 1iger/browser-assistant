@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Browser Assistant",
   "short_name": "BAssistant",
-  "version": "1.0.0",
-  "description": "Память вкладок с закрытием по клику, экстрактор ссылок по форматам файлов и анонимайзер заголовков/отпечатков браузера.",
+  "version": "1.1.0",
+  "description": "Память вкладок, экстрактор ссылок, автосбор баллов VK Video Live / Twitch, скачивание смайлов (WEBP/GIF) и анонимайзер заголовков/отпечатков.",
   "minimum_chrome_version": "110",
   "permissions": [
     "tabs",
@@ -27,7 +27,15 @@
     "https://api.live.vkvideo.ru/*",
     "https://api.live.vkplay.ru/*",
     "https://www.twitch.tv/*",
-    "https://*.twitch.tv/*"
+    "https://*.twitch.tv/*",
+    "https://static-cdn.jtvnw.net/*",
+    "https://*.jtvnw.net/*",
+    "https://cdn.betterttv.net/*",
+    "https://*.betterttv.net/*",
+    "https://cdn.frankerfacez.com/*",
+    "https://*.frankerfacez.com/*",
+    "https://cdn.7tv.app/*",
+    "https://*.7tv.app/*"
   ],
   "content_scripts": [
     {

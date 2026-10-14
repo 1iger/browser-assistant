@@ -8,6 +8,7 @@ export const DEFAULTS = {
   ],
   allLinks: false,
   badgeMode: 'mem',
+  emoteFormat: 'webp',
   anonSites: [],
   anon: {
     ua: true,
