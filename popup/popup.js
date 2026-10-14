@@ -167,6 +167,8 @@ function renderTabs(tabs, memMap, srcMap, forceRender) {
     if (tab.favIconUrl && /^https?:/.test(tab.favIconUrl)) fav.src = tab.favIconUrl;
     else fav.hidden = true;
     fav.addEventListener('error', () => { fav.hidden = true; });
+    fav.title = 'Открыть окно и перейти на вкладку';
+    fav.addEventListener('click', () => focusTab(tab.windowId, tab.id));
     row.appendChild(fav);
 
     const main = document.createElement('div');
@@ -207,7 +209,8 @@ function renderTabs(tabs, memMap, srcMap, forceRender) {
       const w = document.createElement('span');
       w.className = 'win-tag';
       w.textContent = 'О' + (winIdx + 1);
-      w.title = 'Окно ' + (winIdx + 1);
+      w.title = 'Клик — показать окно ' + (winIdx + 1);
+      w.addEventListener('click', () => focusWindow(tab.windowId));
       row.appendChild(w);
     }
 
@@ -225,13 +228,7 @@ function renderTabs(tabs, memMap, srcMap, forceRender) {
     go.className = 'go-btn';
     go.title = 'Перейти на вкладку';
     go.textContent = '↗';
-    go.addEventListener('click', async () => {
-      try {
-        await chrome.tabs.update(tab.id, { active: true });
-        if (tab.windowId != null) await chrome.windows.update(tab.windowId, { focused: true });
-      } catch (e) {}
-      window.close();
-    });
+    go.addEventListener('click', () => focusTab(tab.windowId, tab.id));
     row.appendChild(go);
 
     list.appendChild(row);
@@ -244,6 +241,25 @@ function renderTabs(tabs, memMap, srcMap, forceRender) {
     list.appendChild(e);
   }
   list.scrollTop = scrollPos;
+}
+
+async function focusWindow(windowId) {
+  if (windowId != null) {
+    try {
+      const win = await chrome.windows.get(windowId);
+      const patch = { focused: true };
+      if (win && win.state === 'minimized') patch.state = 'normal';
+      await chrome.windows.update(windowId, patch);
+    } catch (e) {
+      try { await chrome.windows.update(windowId, { focused: true }); } catch (e2) {}
+    }
+  }
+  window.close();
+}
+
+async function focusTab(windowId, tabId) {
+  try { await chrome.tabs.update(tabId, { active: true }); } catch (e) {}
+  await focusWindow(windowId);
 }
 
 async function closeTab(tabId, row) {

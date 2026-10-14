@@ -124,7 +124,11 @@ main { padding: 8px; }
   border-radius: 3px;
   object-fit: contain;
   background: var(--bg);
+  cursor: pointer;
+  transition: transform .08s ease;
 }
+
+.fav:hover { transform: scale(1.18); }
 
 .tab-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
@@ -168,7 +172,11 @@ main { padding: 8px; }
   border: 1px solid var(--line);
   border-radius: 4px;
   padding: 0 4px;
+  cursor: pointer;
+  user-select: none;
 }
+
+.win-tag:hover { color: var(--fg); border-color: var(--accent); background: var(--chip); }
 
 .go-btn {
   width: 24px;
