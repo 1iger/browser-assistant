@@ -31,6 +31,9 @@ async function init() {
   setupEmotesPane();
   setupAnonPane();
 
+  const nav = await chrome.storage.local.get('lastPane');
+  activatePane(nav.lastPane || 'tabs');
+
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'local' && changes.settings) {
       settings = mergeSettings(changes.settings.newValue);
@@ -41,17 +44,27 @@ async function init() {
 
 /* ---------------- navigation ---------------- */
 
+function activatePane(name) {
+  const btn = document.querySelector('.nav-btn[data-pane="' + name + '"]') ||
+    document.querySelector('.nav-btn[data-pane="tabs"]');
+  if (!btn) return null;
+  const pane = btn.dataset.pane;
+  document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', b === btn));
+  document.querySelectorAll('.pane').forEach((p) => { p.hidden = true; });
+  const el = $('#pane-' + pane);
+  if (el) el.hidden = false;
+  if (pane === 'tabs') refreshTabs(true).catch(() => {});
+  if (pane === 'points') startPointsRefresh();
+  if (pane !== 'points') stopPointsRefresh();
+  if (pane === 'emotes' && !collectedEmotes.length) collectEmotes();
+  return pane;
+}
+
 function setupNav() {
   document.querySelectorAll('.nav-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.nav-btn').forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.querySelectorAll('.pane').forEach((p) => { p.hidden = true; });
-      $('#pane-' + btn.dataset.pane).hidden = false;
-      if (btn.dataset.pane === 'tabs') refreshTabs(true).catch(() => {});
-      if (btn.dataset.pane === 'points') startPointsRefresh();
-      if (btn.dataset.pane !== 'points') stopPointsRefresh();
-      if (btn.dataset.pane === 'emotes' && !collectedEmotes.length) collectEmotes();
+      const pane = activatePane(btn.dataset.pane);
+      if (pane) chrome.storage.local.set({ lastPane: pane }).catch(() => {});
     });
   });
   $('#openOptions').addEventListener('click', () => chrome.runtime.openOptionsPage());

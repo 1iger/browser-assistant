@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Browser Assistant",
   "short_name": "BAssistant",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Память вкладок, экстрактор ссылок, автосбор баллов VK Video Live / Twitch, скачивание смайлов (WEBP/GIF) и анонимайзер заголовков/отпечатков.",
   "minimum_chrome_version": "110",
   "permissions": [
@@ -16,7 +16,9 @@
     "webRequest",
     "processes",
     "notifications",
-    "downloads"
+    "downloads",
+    "contextMenus",
+    "offscreen"
   ],
   "optional_host_permissions": [
     "*://*/*"
@@ -35,7 +37,8 @@
     "https://cdn.frankerfacez.com/*",
     "https://*.frankerfacez.com/*",
     "https://cdn.7tv.app/*",
-    "https://*.7tv.app/*"
+    "https://*.7tv.app/*",
+    "https://catbox.moe/*"
   ],
   "content_scripts": [
     {

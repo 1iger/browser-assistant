@@ -525,9 +525,129 @@ function scheduleAnonReapply() {
   setTimeout(reapplyAnonTabs, 200);
 }
 
+/* ---------------- image upload (context menu) ---------------- */
+
+const IMAGE_MENU_ID = 'ba-upload-image';
+const IMAGE_HOST_URL = 'https://catbox.moe/user/api.php';
+
+function ensureImageMenu() {
+  if (!chrome.contextMenus) return;
+  chrome.contextMenus.create({
+    id: IMAGE_MENU_ID,
+    title: 'Загрузить и получить ссылку',
+    contexts: ['image']
+  }, () => { void chrome.runtime.lastError; });
+}
+
+function baNotify(title, message) {
+  if (!chrome.notifications) return;
+  try {
+    chrome.notifications.create('ba-upload-' + Date.now(), {
+      type: 'basic',
+      iconUrl: chrome.runtime.getURL('icons/icon128.png'),
+      title,
+      message: (message || '').slice(0, 250)
+    }, () => { void chrome.runtime.lastError; });
+  } catch (e) { /* нет notifications */ }
+}
+
+async function fetchImageBlob(srcUrl, tabId) {
+  try {
+    const r = await fetch(srcUrl, { credentials: 'omit', cache: 'no-store' });
+    if (r.ok) return await r.blob();
+  } catch (e) { /* нет доступа к домену — пробуем через вкладку */ }
+  if (typeof tabId === 'number') {
+    try {
+      const res = await chrome.scripting.executeScript({
+        target: { tabId },
+        args: [srcUrl],
+        func: async (url) => {
+          try {
+            const r = await fetch(url, { credentials: 'include' });
+            if (!r.ok) return null;
+            const buf = new Uint8Array(await r.arrayBuffer());
+            let bin = '';
+            for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+            return { b64: btoa(bin), type: r.headers.get('content-type') || 'image/png' };
+          } catch (e) { return null; }
+        }
+      });
+      const out = res && res[0] && res[0].result;
+      if (out && out.b64) {
+        const bin = atob(out.b64);
+        const arr = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        return new Blob([arr], { type: out.type });
+      }
+    } catch (e) { /* активная вкладка недоступна */ }
+  }
+  return null;
+}
+
+function imageFileName(srcUrl, type) {
+  try {
+    const name = decodeURIComponent(new URL(srcUrl).pathname.split('/').pop() || '');
+    if (name && name.includes('.')) return name;
+  } catch (e) { /* невалидный url */ }
+  const ext = (type || '').split('/')[1] || 'png';
+  return 'image.' + ext.replace(/[^a-z0-9]/gi, '').slice(0, 5);
+}
+
+async function copyToClipboard(text) {
+  if (!chrome.offscreen) return false;
+  try {
+    if (!(await chrome.offscreen.hasDocument())) {
+      await chrome.offscreen.createDocument({
+        url: 'offscreen.html',
+        reasons: ['CLIPBOARD'],
+        justification: 'Копирование прямой ссылки на изображение в буфер обмена'
+      });
+    }
+  } catch (e) { return false; }
+  try {
+    const resp = await chrome.runtime.sendMessage({ type: 'offscreen:copy', text });
+    return !!(resp && resp.ok);
+  } catch (e) { return false; }
+}
+
+async function uploadImageToCatbox(srcUrl, tabId) {
+  baNotify('Загрузка изображения…', 'Отправляю на catbox.moe');
+  const blob = await fetchImageBlob(srcUrl, tabId);
+  if (!blob || !blob.size) {
+    baNotify('Не удалось получить изображение', 'Разрешите доступ к сайту в панели расширения');
+    return;
+  }
+  let link = '';
+  try {
+    const fd = new FormData();
+    fd.append('reqtype', 'fileupload');
+    fd.append('fileToUpload', blob, imageFileName(srcUrl, blob.type));
+    const up = await fetch(IMAGE_HOST_URL, { method: 'POST', body: fd });
+    link = (await up.text()).trim();
+  } catch (e) { link = ''; }
+  if (!/^https?:\/\//i.test(link)) {
+    baNotify('Ошибка загрузки', link || 'catbox.moe недоступен');
+    return;
+  }
+  try { await chrome.storage.local.set({ lastImageLink: link }); } catch (e) {}
+  const copied = await copyToClipboard(link);
+  baNotify(copied ? 'Ссылка скопирована' : 'Ссылка получена', link);
+}
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === IMAGE_MENU_ID && info.srcUrl) {
+    uploadImageToCatbox(info.srcUrl, tab && tab.id).catch(() => {});
+  }
+});
+
+ensureImageMenu();
+
+chrome.runtime.onStartup.addListener(() => { ensureImageMenu(); });
+
 /* ---------------- events ---------------- */
 
 chrome.runtime.onInstalled.addListener(async () => {
+  ensureImageMenu();
   await ensureDefaults();
   await restoreAnonTabs();
   await rebuildRules();
