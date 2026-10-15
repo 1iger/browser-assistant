@@ -528,7 +528,7 @@ function scheduleAnonReapply() {
 /* ---------------- image upload (context menu) ---------------- */
 
 const IMAGE_MENU_ID = 'ba-upload-image';
-const IMAGE_HOST_URL = 'https://catbox.moe/user/api.php';
+const IMAGE_HOST_URL = 'https://pomf.lain.la/upload.php';
 
 function ensureImageMenu() {
   if (!chrome.contextMenus) return;
@@ -610,8 +610,8 @@ async function copyToClipboard(text) {
   } catch (e) { return false; }
 }
 
-async function uploadImageToCatbox(srcUrl, tabId) {
-  baNotify('Загрузка изображения…', 'Отправляю на catbox.moe');
+async function uploadImage(srcUrl, tabId) {
+  baNotify('Загрузка изображения…', 'Отправляю на pomf.lain.la');
   const blob = await fetchImageBlob(srcUrl, tabId);
   if (!blob || !blob.size) {
     baNotify('Не удалось получить изображение', 'Разрешите доступ к сайту в панели расширения');
@@ -620,13 +620,18 @@ async function uploadImageToCatbox(srcUrl, tabId) {
   let link = '';
   try {
     const fd = new FormData();
-    fd.append('reqtype', 'fileupload');
-    fd.append('fileToUpload', blob, imageFileName(srcUrl, blob.type));
+    fd.append('files[]', blob, imageFileName(srcUrl, blob.type));
     const up = await fetch(IMAGE_HOST_URL, { method: 'POST', body: fd });
-    link = (await up.text()).trim();
+    const text = (await up.text()).trim();
+    try {
+      const j = JSON.parse(text);
+      link = (j && j.files && j.files[0] && j.files[0].url) || '';
+    } catch (e) {
+      link = text;
+    }
   } catch (e) { link = ''; }
   if (!/^https?:\/\//i.test(link)) {
-    baNotify('Ошибка загрузки', link || 'catbox.moe недоступен');
+    baNotify('Ошибка загрузки', 'pomf.lain.la недоступен');
     return;
   }
   try { await chrome.storage.local.set({ lastImageLink: link }); } catch (e) {}
@@ -636,7 +641,7 @@ async function uploadImageToCatbox(srcUrl, tabId) {
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === IMAGE_MENU_ID && info.srcUrl) {
-    uploadImageToCatbox(info.srcUrl, tab && tab.id).catch(() => {});
+    uploadImage(info.srcUrl, tab && tab.id).catch(() => {});
   }
 });
 
