@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Browser Assistant",
   "short_name": "BAssistant",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Память вкладок, экстрактор ссылок, автосбор баллов VK Video Live / Twitch, скачивание смайлов (WEBP/GIF), загрузка картинок по правому клику и анонимайзер заголовков/отпечатков.",
   "minimum_chrome_version": "110",
   "permissions": [
@@ -26,6 +26,7 @@
   "host_permissions": [
     "https://live.vkvideo.ru/*",
     "https://*.vkvideo.ru/*",
+    "https://*.vkplay.ru/*",
     "https://api.live.vkvideo.ru/*",
     "https://api.live.vkplay.ru/*",
     "https://www.twitch.tv/*",

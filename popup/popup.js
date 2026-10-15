@@ -562,7 +562,7 @@ function updateEmoteFormatHint() {
   if (el) el.textContent = settings && settings.emoteFormat === 'gif' ? 'файл как на CDN' : 'квадрат для VK';
 }
 
-// Выполняется в контексте страницы Twitch: собирает emote-изображения из DOM.
+// Выполняется в контексте страницы: собирает emote-изображения из DOM.
 function collectEmotesFunc() {
   const PROVIDERS = [
     { name: 'twitch', re: /(?:^|\.)jtvnw\.net$/ },
@@ -579,16 +579,12 @@ function collectEmotesFunc() {
 
   const out = [];
   const seen = new Set();
-  for (const img of document.querySelectorAll('img')) {
-    // Берём атрибут src (у Twitch это обычно 2.0 = 56px), а не currentSrc:
-    // currentSrc на 1x-экране часто отдаёт маленький вариант 1.0 = 28px.
-    const url = img.src || img.currentSrc || '';
-    if (!url) continue;
-    const provider = providerOf(url);
-    if (!provider) continue;
-    const alt = (img.alt || '').trim();
+  const push = (img, url, provider, name) => {
+    if (!url) return;
+    let alt = name;
+    if (alt == null) alt = (img.getAttribute('alt') || '').trim() || (img.title || '').trim();
     const key = provider + '|' + (alt || url);
-    if (seen.has(key)) continue;
+    if (seen.has(key)) return;
     seen.add(key);
     out.push({
       name: alt,
@@ -597,6 +593,63 @@ function collectEmotesFunc() {
       w: img.naturalWidth || 0,
       h: img.naturalHeight || 0
     });
+  };
+
+  for (const img of document.querySelectorAll('img')) {
+    // Берём атрибут src (у Twitch это обычно 2.0 = 56px), а не currentSrc:
+    // currentSrc на 1x-экране часто отдаёт маленький вариант 1.0 = 28px.
+    const url = img.src || img.currentSrc || '';
+    if (!url) continue;
+    const provider = providerOf(url);
+    if (!provider) continue;
+    push(img, url, provider);
+  }
+
+  // VK Live / VK Play Live: смайлы на своём CDN (не «эмоциональном» домене провайдера),
+  // поэтому узнаём их по DOM. В чате: <img class="smile" data-role="MESSAGE_SMILE_CONTENT"
+  // src=small srcset="medium 2x, large 3x">; в панели смайлов — [class*="Smile…"] и
+  // контейнер с data-smile-id. Оригинал берём из srcset (1x в чате = 28px).
+  if (/(^|\.)vkvideo\.ru$|(^|\.)vkplay\.ru$/.test(location.hostname)) {
+    const pickLargest = (img) => {
+      const ss = img.getAttribute('srcset') || '';
+      if (!ss) return '';
+      let bestW = '', bestWd = 0, bestX = '', bestXd = 0;
+      for (const part of ss.split(',')) {
+        const bits = part.trim().split(/\s+/);
+        if (!bits[0]) continue;
+        const m = bits[1] ? /^([\d.]+)([wx])$/i.exec(bits[1]) : null;
+        if (m) {
+          const v = parseFloat(m[1]);
+          if (m[2].toLowerCase() === 'w') {
+            if (v > bestWd) { bestWd = v; bestW = bits[0]; }
+          } else if (v > bestXd) { bestXd = v; bestX = bits[0]; }
+        } else if (!bestW && !bestX) { bestX = bits[0]; bestXd = 1; }
+      }
+      if (bestW) return bestW;
+      if (bestX) return bestX;
+      return '';
+    };
+    const sel = [
+      'img.smile',
+      'img[data-role="MESSAGE_SMILE_CONTENT"]',
+      'img[class*="SmileBlock_image"]',
+      'img[class*="SmileItem_smileImage"]',
+      'img[class*="SmileBaseInfo_smileImg"]',
+      '[data-smile-id] img'
+    ].join(',');
+    for (const img of document.querySelectorAll(sel)) {
+      const url = pickLargest(img) || img.src || img.currentSrc || '';
+      let name = (img.getAttribute('alt') || '').trim() || (img.title || '').trim();
+      if (!name) {
+        const box = img.closest('[data-smile-id]');
+        if (box) {
+          const tip = box.querySelector('[class*="tooltipContent"], [class*="tooltip"], [class*="SmileItem_tooltip"], [class*="Tooltip_content"]');
+          if (tip) name = (tip.textContent || '').replace(/\s+/g, ' ').trim();
+          if (!name) name = (box.getAttribute('data-smile-id') || '').trim();
+        }
+      }
+      push(img, url, 'vklive', name);
+    }
   }
   return out;
 }
@@ -607,7 +660,7 @@ async function collectEmotes() {
   btn.textContent = 'Сбор…';
   try {
     let tab = activeTab;
-    if (!tab || tab.id == null || !/twitch\.tv/.test(tab.url || '')) {
+    if (!tab || tab.id == null) {
       tab = (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
     }
     if (!tab || tab.id == null) throw new Error('no tab');
@@ -632,7 +685,7 @@ function renderEmotes() {
 
   if (!collectedEmotes.length) {
     $('#emoteEmpty').textContent =
-      'Смайлы не найдены. Откройте Twitch (чат/панель со смайлами) и нажмите «Собрать смайлы».';
+      'Смайлы не найдены. Откройте Twitch либо VK Live (чат или панель со смайлами) и нажмите «Собрать смайлы».';
     return;
   }
 
@@ -1057,6 +1110,49 @@ async function fetchBytes(url) {
   return { buf, mime };
 }
 
+// Фолбэк для CDN, к которым у расширения нет host-доступа (напр. смайл-хостинг VK):
+// качаем картинку из контекста активной вкладки (там действуют куки и Referer страницы)
+// и передаём байты в попап.
+async function fetchBytesViaPage(url) {
+  let tab = activeTab;
+  if (!tab || tab.id == null) {
+    tab = (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
+  }
+  if (!tab || tab.id == null) throw new Error('no tab');
+  const res = await chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: async (u) => {
+      try {
+        const r = await fetch(u, { credentials: 'include' });
+        if (!r.ok) return { error: 'HTTP ' + r.status };
+        const b = new Uint8Array(await r.arrayBuffer());
+        let s = '';
+        const CH = 0x8000;
+        for (let i = 0; i < b.length; i += CH) {
+          s += String.fromCharCode.apply(null, b.subarray(i, i + CH));
+        }
+        return { data: btoa(s), mime: (r.headers.get('content-type') || '').split(';')[0].trim() };
+      } catch (e) {
+        return { error: String((e && e.message) || e) };
+      }
+    },
+    args: [url]
+  });
+  const r = res && res[0] && res[0].result;
+  if (!r || !r.data) throw new Error((r && r.error) || 'page fetch failed');
+  const bin = atob(r.data);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  let mime = r.mime || '';
+  if (!mime || mime === 'application/octet-stream') mime = sniffType(out.buffer) || mime;
+  return { buf: out.buffer, mime };
+}
+
+// Скачивает картинку: сначала напрямую, при неудаче — через активную вкладку.
+async function fetchEmote(url) {
+  try { return await fetchBytes(url); } catch (e) { return fetchBytesViaPage(url); }
+}
+
 async function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   try {
@@ -1074,7 +1170,7 @@ async function processEmoteGif(em) {
   for (const c of candidates) {
     if (!c) continue;
     let s = null;
-    try { s = await fetchBytes(c); } catch (e) { continue; }
+    try { s = await fetchEmote(c); } catch (e) { continue; }
     const mime = s.mime || sniffType(s.buf) || '';
     if (!picked) picked = { buf: s.buf, mime };
     if (mime === 'image/gif') { picked = { buf: s.buf, mime }; break; }
@@ -1095,7 +1191,7 @@ async function processEmote(em) {
   let src = null;
   for (const candidate of [bestSourceUrl(em.url, em.provider), em.url]) {
     if (!candidate) continue;
-    try { src = await fetchBytes(candidate); break; } catch (e) { /* пробуем исходный url */ }
+    try { src = await fetchEmote(candidate); break; } catch (e) { /* пробуем исходный url */ }
   }
   if (!src) throw new Error('download failed');
 
